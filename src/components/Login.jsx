@@ -10,9 +10,17 @@ const Login = ({ setToken }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Theme Colors based on your elegant design
+  const theme = {
+    primaryOrange: '#cc5a27', // The burnt orange from the button
+    bgDark: '#2c1e16',        // The moody restaurant background
+    textDark: '#333333',
+    textLight: '#8a827c',
+    inputBorder: '#e6ded8',
+  };
+
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  // --- LOGO UPLOAD HANDLER ---
   const handleLogoChange = (event) => {
     const file = event.target.files[0];
     if (file && file.type.startsWith('image/')) {
@@ -28,7 +36,6 @@ const Login = ({ setToken }) => {
     }
   };
 
-  // --- AUTHENTICATION HANDLER ---
   const handleAction = async (e, type) => {
     e.preventDefault();
     setError('');
@@ -42,7 +49,6 @@ const Login = ({ setToken }) => {
     }
 
     try {
-      // NOTE: We are only sending text data to Render right now. Logo storage comes next!
       const res = await fetch(`https://restaurant-saas-j7ed.onrender.com${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -66,79 +72,77 @@ const Login = ({ setToken }) => {
     }
   };
 
+  // Shared Input Style to match the elegant theme
+  const inputStyle = {
+    width: '100%', padding: '14px 14px 14px 40px', marginBottom: '15px', 
+    border: `1px solid ${theme.inputBorder}`, borderRadius: '10px', 
+    boxSizing: 'border-box', fontSize: '15px', outlineColor: theme.primaryOrange,
+    color: theme.textDark, backgroundColor: '#fcfcfc'
+  };
+
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', backgroundColor: '#f0f2f5', fontFamily: 'sans-serif' }}>
+    <div style={{ 
+      display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', 
+      // Moody restaurant radial gradient background
+      background: `radial-gradient(circle at 50% 30%, #4a3224 0%, #1f140e 100%)`, 
+      fontFamily: '"Segoe UI", Roboto, Helvetica, Arial, sans-serif' 
+    }}>
       
-      <div style={{ background: 'white', padding: '40px', borderRadius: '12px', boxShadow: '0 8px 24px rgba(0,0,0,0.1)', width: '100%', maxWidth: '450px' }}>
-        <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-            <h1 style={{ color: '#1a1a1a', margin: '0 0 10px 0', fontSize: '24px' }}>🍽️ Restaurant OS</h1>
-            <p style={{ color: '#666', margin: 0 }}>Manage your digital storefront</p>
+      <div style={{ 
+        background: '#fffdfb', padding: '40px 35px', borderRadius: '20px', 
+        boxShadow: '0 20px 50px rgba(0,0,0,0.5)', width: '100%', maxWidth: '420px',
+        position: 'relative', zIndex: 10
+      }}>
+        
+        {/* --- HEADER (LOGO & BRANDING) --- */}
+        <div style={{ textAlign: 'center', marginBottom: '25px' }}>
+            <div style={{ 
+              width: '60px', height: '60px', backgroundColor: theme.primaryOrange, 
+              borderRadius: '16px', display: 'flex', justifyContent: 'center', alignItems: 'center', 
+              margin: '0 auto 15px', color: 'white', fontSize: '30px' 
+            }}>
+               🍽️ {/* Placeholder for the Fork/Knife icon */}
+            </div>
+            <h1 style={{ color: theme.textDark, margin: '0 0 5px 0', fontSize: '24px', fontWeight: '600' }}>TableOrder</h1>
+            <p style={{ color: theme.textLight, margin: 0, fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase' }}>Owner Portal</p>
         </div>
 
         {/* --- LOGIN VIEW --- */}
         {view === 'login' && (
           <form onSubmit={(e) => handleAction(e, 'login')}>
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#333', fontSize: '14px' }}>Email Address</label>
-              <input name="email" type="email" placeholder="owner@restaurant.com" onChange={handleChange} required style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '6px', boxSizing: 'border-box' }} />
+            <h2 style={{ textAlign: 'center', color: theme.textDark, fontSize: '22px', marginBottom: '5px' }}>Welcome Back!</h2>
+            <p style={{ textAlign: 'center', color: theme.textLight, fontSize: '14px', marginBottom: '25px' }}>Log in to manage your restaurant orders</p>
+            
+            <div style={{ position: 'relative' }}>
+              <span style={{ position: 'absolute', left: '14px', top: '14px', opacity: 0.4 }}>✉️</span>
+              <input name="email" type="email" placeholder="Email Address" onChange={handleChange} required style={inputStyle} />
             </div>
-            <div style={{ marginBottom: '25px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#333', fontSize: '14px' }}>Password</label>
-              <input name="password" type="password" placeholder="••••••••" onChange={handleChange} required style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '6px', boxSizing: 'border-box' }} />
+            
+            <div style={{ position: 'relative', marginBottom: '5px' }}>
+              <span style={{ position: 'absolute', left: '14px', top: '14px', opacity: 0.4 }}>🔒</span>
+              <input name="password" type="password" placeholder="Password" onChange={handleChange} required style={inputStyle} />
             </div>
-            <button type="submit" disabled={loading} style={{ width: '100%', padding: '14px', backgroundColor: '#f39c12', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', fontSize: '16px' }}>
+            
+            <div style={{ textAlign: 'right', marginBottom: '20px' }}>
+              <span style={{ color: theme.primaryOrange, fontSize: '13px', cursor: 'pointer' }}>Forgot password?</span>
+            </div>
+
+            <button type="submit" disabled={loading} style={{ 
+              width: '100%', padding: '15px', backgroundColor: theme.primaryOrange, color: 'white', 
+              border: 'none', borderRadius: '10px', fontWeight: '600', cursor: 'pointer', fontSize: '16px',
+              boxShadow: '0 4px 10px rgba(204, 90, 39, 0.3)'
+            }}>
               {loading ? 'Logging in...' : 'Log In'}
             </button>
-            <p style={{ textAlign: 'center', marginTop: '20px', color: '#666', fontSize: '14px' }}>New here? <span onClick={() => setView('register')} style={{ color: '#f39c12', cursor: 'pointer', fontWeight: 'bold' }}>Sign up</span></p>
-          </form>
-        )}
 
-        {/* --- REGISTER VIEW (With Logo Upload) --- */}
-        {view === 'register' && (
-          <form onSubmit={(e) => handleAction(e, 'register')}>
-            
-            {/* Logo Upload Box */}
-            <div style={{ marginBottom: '20px', padding: '15px', border: '2px dashed #ddd', borderRadius: '8px', textAlign: 'center', backgroundColor: '#fafafa' }}>
-                <label style={{ display: 'block', marginBottom: '10px', fontWeight: 'bold', color: '#333' }}>Upload Restaurant Logo</label>
-                <input type="file" accept="image/*" onChange={handleLogoChange} style={{ fontSize: '12px' }} />
-                {logoPreview && (
-                    <img src={logoPreview} alt="Preview" style={{ display: 'block', margin: '10px auto 0', maxWidth: '100px', borderRadius: '8px' }} />
-                )}
+            {/* Divider */}
+            <div style={{ display: 'flex', alignItems: 'center', margin: '25px 0', color: theme.inputBorder }}>
+              <div style={{ flex: 1, height: '1px', backgroundColor: theme.inputBorder }}></div>
+              <span style={{ margin: '0 15px', color: theme.textLight, fontSize: '14px' }}>or</span>
+              <div style={{ flex: 1, height: '1px', backgroundColor: theme.inputBorder }}></div>
             </div>
 
-            <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
-              <input name="firstName" placeholder="First Name" onChange={handleChange} required style={{ flex: 1, padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
-              <input name="lastName" placeholder="Last Name" onChange={handleChange} required style={{ flex: 1, padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }} />
-            </div>
-            <input name="companyName" placeholder="Restaurant Name" onChange={handleChange} required style={{ width: '100%', padding: '10px', marginBottom: '15px', border: '1px solid #ddd', borderRadius: '6px', boxSizing: 'border-box' }} />
-            <input name="mobileNo" placeholder="Mobile Number" onChange={handleChange} required style={{ width: '100%', padding: '10px', marginBottom: '15px', border: '1px solid #ddd', borderRadius: '6px', boxSizing: 'border-box' }} />
-            <input name="email" type="email" placeholder="Email Address" onChange={handleChange} required style={{ width: '100%', padding: '10px', marginBottom: '15px', border: '1px solid #ddd', borderRadius: '6px', boxSizing: 'border-box' }} />
-            <input name="password" type="password" placeholder="Create Password" onChange={handleChange} required style={{ width: '100%', padding: '10px', marginBottom: '15px', border: '1px solid #ddd', borderRadius: '6px', boxSizing: 'border-box' }} />
-            <input name="confirmPassword" type="password" placeholder="Confirm Password" onChange={handleChange} required style={{ width: '100%', padding: '10px', marginBottom: '20px', border: '1px solid #ddd', borderRadius: '6px', boxSizing: 'border-box' }} />
-            
-            <button type="submit" disabled={loading} style={{ width: '100%', padding: '14px', backgroundColor: '#f39c12', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}>
-              {loading ? 'Creating...' : 'Create Account'}
-            </button>
-            <p style={{ textAlign: 'center', marginTop: '15px', fontSize: '14px' }}><span onClick={() => setView('login')} style={{ color: '#666', cursor: 'pointer' }}>← Back to login</span></p>
-          </form>
-        )}
-
-        {/* --- VERIFY VIEW --- */}
-        {view === 'verify' && (
-          <form onSubmit={(e) => handleAction(e, 'verify')} style={{ textAlign: 'center' }}>
-            <h2>Verify Email</h2>
-            <p style={{ color: '#666', marginBottom: '20px' }}>Enter the 4-digit code sent to {formData.email}</p>
-            <input name="otp" maxLength="4" placeholder="0000" onChange={handleChange} required style={{ width: '120px', fontSize: '24px', letterSpacing: '8px', textAlign: 'center', padding: '10px', border: '2px solid #f39c12', borderRadius: '8px', marginBottom: '20px' }} />
-            <button type="submit" disabled={loading} style={{ width: '100%', padding: '14px', backgroundColor: '#f39c12', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}>
-              Verify Account
-            </button>
-          </form>
-        )}
-
-        {error && <div style={{ marginTop: '20px', padding: '10px', backgroundColor: '#fee', color: '#c00', borderRadius: '6px', textAlign: 'center', fontSize: '14px' }}>{error}</div>}
-      </div>
-    </div>
-  );
-};
-
-export default Login;
+            <button type="button" onClick={() => alert("Google Auth coming soon!")} style={{ 
+              width: '100%', padding: '14px', backgroundColor: 'transparent', color: theme.textDark, 
+              border: `1px solid ${theme.inputBorder}`, borderRadius: '10px', fontWeight: '500', 
+              cursor: 'pointer', fontSize: '15px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px'
