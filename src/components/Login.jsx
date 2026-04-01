@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 
 const Login = ({ setToken }) => {
+  // 1. States
   const [view, setView] = useState('login'); 
   const [logoFile, setLogoFile] = useState(null);
   const [logoPreview, setLogoPreview] = useState(null);
@@ -10,15 +11,16 @@ const Login = ({ setToken }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Theme Colors based on your elegant design
+  // 2. Theme Colors
   const theme = {
-    primaryOrange: '#cc5a27', // The burnt orange from the button
-    bgDark: '#2c1e16',        // The moody restaurant background
+    primaryOrange: '#cc5a27',
+    bgDark: '#2c1e16',
     textDark: '#333333',
     textLight: '#8a827c',
     inputBorder: '#e6ded8',
   };
 
+  // 3. Handlers
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleLogoChange = (event) => {
@@ -30,9 +32,6 @@ const Login = ({ setToken }) => {
         setLogoPreview(reader.result);
       };
       reader.readAsDataURL(file);
-    } else {
-      setLogoFile(null);
-      setLogoPreview(null);
     }
   };
 
@@ -72,7 +71,7 @@ const Login = ({ setToken }) => {
     }
   };
 
-  // Shared Input Style to match the elegant theme
+  // 4. Styles
   const inputStyle = {
     width: '100%', padding: '14px 14px 14px 40px', marginBottom: '15px', 
     border: `1px solid ${theme.inputBorder}`, borderRadius: '10px', 
@@ -80,69 +79,76 @@ const Login = ({ setToken }) => {
     color: theme.textDark, backgroundColor: '#fcfcfc'
   };
 
+  // 5. Render
   return (
     <div style={{ 
       display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', 
-      // Moody restaurant radial gradient background
       background: `radial-gradient(circle at 50% 30%, #4a3224 0%, #1f140e 100%)`, 
-      fontFamily: '"Segoe UI", Roboto, Helvetica, Arial, sans-serif' 
+      fontFamily: 'sans-serif' 
     }}>
       
       <div style={{ 
         background: '#fffdfb', padding: '40px 35px', borderRadius: '20px', 
-        boxShadow: '0 20px 50px rgba(0,0,0,0.5)', width: '100%', maxWidth: '420px',
-        position: 'relative', zIndex: 10
+        boxShadow: '0 20px 50px rgba(0,0,0,0.5)', width: '100%', maxWidth: '420px'
       }}>
         
-        {/* --- HEADER (LOGO & BRANDING) --- */}
+        {/* HEADER */}
         <div style={{ textAlign: 'center', marginBottom: '25px' }}>
             <div style={{ 
               width: '60px', height: '60px', backgroundColor: theme.primaryOrange, 
               borderRadius: '16px', display: 'flex', justifyContent: 'center', alignItems: 'center', 
               margin: '0 auto 15px', color: 'white', fontSize: '30px' 
-            }}>
-               🍽️ {/* Placeholder for the Fork/Knife icon */}
-            </div>
-            <h1 style={{ color: theme.textDark, margin: '0 0 5px 0', fontSize: '24px', fontWeight: '600' }}>TableOrder</h1>
+            }}>🍽️</div>
+            <h1 style={{ color: theme.textDark, margin: '0 0 5px 0', fontSize: '24px' }}>TableOrder</h1>
             <p style={{ color: theme.textLight, margin: 0, fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase' }}>Owner Portal</p>
         </div>
 
-        {/* --- LOGIN VIEW --- */}
+        {/* LOGIN VIEW */}
         {view === 'login' && (
           <form onSubmit={(e) => handleAction(e, 'login')}>
-            <h2 style={{ textAlign: 'center', color: theme.textDark, fontSize: '22px', marginBottom: '5px' }}>Welcome Back!</h2>
-            <p style={{ textAlign: 'center', color: theme.textLight, fontSize: '14px', marginBottom: '25px' }}>Log in to manage your restaurant orders</p>
-            
+            <h2 style={{ textAlign: 'center', color: theme.textDark }}>Welcome Back!</h2>
             <div style={{ position: 'relative' }}>
-              <span style={{ position: 'absolute', left: '14px', top: '14px', opacity: 0.4 }}>✉️</span>
               <input name="email" type="email" placeholder="Email Address" onChange={handleChange} required style={inputStyle} />
             </div>
-            
-            <div style={{ position: 'relative', marginBottom: '5px' }}>
-              <span style={{ position: 'absolute', left: '14px', top: '14px', opacity: 0.4 }}>🔒</span>
+            <div style={{ position: 'relative' }}>
               <input name="password" type="password" placeholder="Password" onChange={handleChange} required style={inputStyle} />
             </div>
-            
-            <div style={{ textAlign: 'right', marginBottom: '20px' }}>
-              <span style={{ color: theme.primaryOrange, fontSize: '13px', cursor: 'pointer' }}>Forgot password?</span>
-            </div>
-
-            <button type="submit" disabled={loading} style={{ 
-              width: '100%', padding: '15px', backgroundColor: theme.primaryOrange, color: 'white', 
-              border: 'none', borderRadius: '10px', fontWeight: '600', cursor: 'pointer', fontSize: '16px',
-              boxShadow: '0 4px 10px rgba(204, 90, 39, 0.3)'
-            }}>
+            <button type="submit" disabled={loading} style={{ width: '100%', padding: '15px', backgroundColor: theme.primaryOrange, color: 'white', border: 'none', borderRadius: '10px', fontWeight: '600', cursor: 'pointer' }}>
               {loading ? 'Logging in...' : 'Log In'}
             </button>
+            <p style={{ textAlign: 'center', marginTop: '20px', fontSize: '14px' }}>
+              New here? <span onClick={() => setView('register')} style={{ color: theme.primaryOrange, cursor: 'pointer', fontWeight: 'bold' }}>Sign Up</span>
+            </p>
+          </form>
+        )}
 
-            {/* Divider */}
-            <div style={{ display: 'flex', alignItems: 'center', margin: '25px 0', color: theme.inputBorder }}>
-              <div style={{ flex: 1, height: '1px', backgroundColor: theme.inputBorder }}></div>
-              <span style={{ margin: '0 15px', color: theme.textLight, fontSize: '14px' }}>or</span>
-              <div style={{ flex: 1, height: '1px', backgroundColor: theme.inputBorder }}></div>
+        {/* REGISTER VIEW */}
+        {view === 'register' && (
+          <form onSubmit={(e) => handleAction(e, 'register')}>
+            <div style={{ marginBottom: '15px', padding: '10px', border: `1px dashed ${theme.primaryOrange}`, borderRadius: '10px', textAlign: 'center' }}>
+                <input type="file" accept="image/*" onChange={handleLogoChange} style={{ fontSize: '12px' }} />
             </div>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <input name="firstName" placeholder="First Name" onChange={handleChange} required style={{...inputStyle, paddingLeft: '14px'}} />
+              <input name="lastName" placeholder="Last Name" onChange={handleChange} required style={{...inputStyle, paddingLeft: '14px'}} />
+            </div>
+            <input name="companyName" placeholder="Restaurant Name" onChange={handleChange} required style={{...inputStyle, paddingLeft: '14px'}} />
+            <input name="mobileNo" placeholder="Mobile No." onChange={handleChange} required style={{...inputStyle, paddingLeft: '14px'}} />
+            <input name="email" type="email" placeholder="Email" onChange={handleChange} required style={{...inputStyle, paddingLeft: '14px'}} />
+            <input name="password" type="password" placeholder="Password" onChange={handleChange} required style={{...inputStyle, paddingLeft: '14px'}} />
+            <input name="confirmPassword" type="password" placeholder="Confirm" onChange={handleChange} required style={{...inputStyle, paddingLeft: '14px'}} />
+            <button type="submit" style={{ width: '100%', padding: '15px', backgroundColor: theme.primaryOrange, color: 'white', border: 'none', borderRadius: '10px' }}>Register</button>
+            <p style={{ textAlign: 'center', marginTop: '10px' }} onClick={() => setView('login')}>Back</p>
+          </form>
+        )}
 
-            <button type="button" onClick={() => alert("Google Auth coming soon!")} style={{ 
-              width: '100%', padding: '14px', backgroundColor: 'transparent', color: theme.textDark, 
-              border: `1px solid ${theme.inputBorder}`, borderRadius: '10px', fontWeight: '500', 
-              cursor: 'pointer', fontSize: '15px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px'
+        {/* VERIFY VIEW */}
+        {view === 'verify' && (
+          <form onSubmit={(e) => handleAction(e, 'verify')} style={{ textAlign: 'center' }}>
+            <h2>Verify Account</h2>
+            <input name="otp" maxLength="4" placeholder="0000" onChange={handleChange} required style={{ width: '140px', fontSize: '28px', textAlign: 'center', padding: '10px', border: `2px solid ${theme.primaryOrange}`, borderRadius: '10px' }} />
+            <button type="submit" style={{ width: '100%', padding: '15px', backgroundColor: theme.primaryOrange, color: 'white', border: 'none', borderRadius: '10px', marginTop: '20px' }}>Verify</button>
+          </form>
+        )}
+
+        {error && <div style={{ marginTop: '20px', color
