@@ -5,39 +5,32 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Login from './components/Login';
 import ProtectedRoute from './components/ProtectedRoute';
 import DashboardLayout from './components/DashboardLayout';
+import DashboardOverview from './components/DashboardOverview'; // Your real SaaS Hub
 import MenuBuilder from './components/MenuBuilder';
 
-// --- 2. Page Placeholders ---
-const DashboardOverview = () => (
-  <div style={{ background: 'white', padding: '30px', borderRadius: '15px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
-    <h2 style={{ color: '#2c1e16' }}>Welcome back! 👋</h2>
-    <p style={{ color: '#666' }}>Check your live orders or update your menu using the sidebar.</p>
-  </div>
-);
-
+// --- 2. Page Placeholders (Keep these simple for now) ---
 const KitchenDisplay = () => (
   <div style={{ padding: '50px', background: '#222', color: 'white', minHeight: '100vh' }}>
     <h2>👨‍🍳 Kitchen Live Orders</h2>
-    <p>Orders will appear here in real-time.</p>
+    <p>Orders will appear here in real-time once we connect Socket.io.</p>
   </div>
 );
 
 const CustomerMenu = () => (
   <div style={{ padding: '20px' }}>
     <h2>🍔 Digital Menu</h2>
-    <p>Browsing menu for Table 4</p>
+    <p>This is what the customer sees after scanning the QR code.</p>
   </div>
 );
 
 // --- 3. Main App Component ---
 const App = () => {
-  // Pull the token to check if user is already logged in
   const [token, setToken] = useState(localStorage.getItem('token'));
 
   return (
     <Router>
       <Routes>
-        {/* --- PUBLIC ROUTES --- */}
+        {/* --- PUBLIC ACCESS --- */}
         <Route path="/" element={<Navigate to="/login" />} />
         
         <Route 
@@ -45,17 +38,18 @@ const App = () => {
           element={token ? <Navigate to="/dashboard" /> : <Login setToken={setToken} />} 
         />
 
-        {/* --- CUSTOMER & KITCHEN (No Sidebar) --- */}
+        {/* --- CUSTOMER & KITCHEN (Independent Views) --- */}
         <Route path="/menu/:restaurantSlug/:tableNumber" element={<CustomerMenu />} />
         <Route path="/kitchen" element={<KitchenDisplay />} />
 
-        {/* --- PROTECTED OWNER ROUTES (With Sidebar Layout) --- */}
+        {/* --- PROTECTED OWNER PORTAL (The SaaS Hub) --- */}
+        {/* Everything inside here uses the Sidebar Layout */}
         <Route 
           path="/dashboard" 
           element={
             <ProtectedRoute>
               <DashboardLayout>
-                <DashboardOverview />
+                <DashboardOverview /> 
               </DashboardLayout>
             </ProtectedRoute>
           } 
@@ -72,7 +66,7 @@ const App = () => {
           } 
         />
 
-        {/* --- CATCH-ALL --- */}
+        {/* --- 404 SAFETY NET --- */}
         <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
     </Router>
