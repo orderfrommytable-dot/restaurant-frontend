@@ -1,23 +1,43 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
-// --- Import your components ---
+// --- 1. Component Imports ---
 import Login from './components/Login';
 import ProtectedRoute from './components/ProtectedRoute';
+import DashboardLayout from './components/DashboardLayout';
+import MenuBuilder from './components/MenuBuilder';
 
-// --- Temporary Placeholders for the 3 Journeys ---
-const OwnerDashboard = () => <div style={{ padding: '50px' }}><h2>👑 Owner Dashboard</h2><button onClick={() => {localStorage.removeItem('token'); window.location.href='/login'}}>Logout</button></div>;
-const KitchenDisplay = () => <div style={{ padding: '50px', background: '#222', color: 'white', minHeight: '100vh' }}><h2>👨‍🍳 Kitchen Live Orders</h2></div>;
-const CustomerMenu = () => <div style={{ padding: '20px' }}><h2>🍔 Digital Menu (No Login Required)</h2><p>Ordering for Table 4</p></div>;
+// --- 2. Page Placeholders ---
+const DashboardOverview = () => (
+  <div style={{ background: 'white', padding: '30px', borderRadius: '15px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
+    <h2 style={{ color: '#2c1e16' }}>Welcome back! 👋</h2>
+    <p style={{ color: '#666' }}>Check your live orders or update your menu using the sidebar.</p>
+  </div>
+);
 
+const KitchenDisplay = () => (
+  <div style={{ padding: '50px', background: '#222', color: 'white', minHeight: '100vh' }}>
+    <h2>👨‍🍳 Kitchen Live Orders</h2>
+    <p>Orders will appear here in real-time.</p>
+  </div>
+);
+
+const CustomerMenu = () => (
+  <div style={{ padding: '20px' }}>
+    <h2>🍔 Digital Menu</h2>
+    <p>Browsing menu for Table 4</p>
+  </div>
+);
+
+// --- 3. Main App Component ---
 const App = () => {
+  // Pull the token to check if user is already logged in
   const [token, setToken] = useState(localStorage.getItem('token'));
 
   return (
     <Router>
       <Routes>
-        {/* --- 1. THE OPEN ROUTES (Guests & Public) --- */}
-        {/* If someone just goes to yourwebsite.com, send them to login */}
+        {/* --- PUBLIC ROUTES --- */}
         <Route path="/" element={<Navigate to="/login" />} />
         
         <Route 
@@ -25,26 +45,35 @@ const App = () => {
           element={token ? <Navigate to="/dashboard" /> : <Login setToken={setToken} />} 
         />
 
-        {/* The QR Code Link: e.g., yoursite.com/menu/burger-joint/table-4 */}
+        {/* --- CUSTOMER & KITCHEN (No Sidebar) --- */}
         <Route path="/menu/:restaurantSlug/:tableNumber" element={<CustomerMenu />} />
-
-
-        {/* --- 2. THE KITCHEN ROUTE (Low Friction Auth) --- */}
         <Route path="/kitchen" element={<KitchenDisplay />} />
 
-
-        {/* --- 3. THE OWNER PORTAL (Strict Auth) --- */}
+        {/* --- PROTECTED OWNER ROUTES (With Sidebar Layout) --- */}
         <Route 
-          path="/dashboard/*" 
+          path="/dashboard" 
           element={
             <ProtectedRoute>
-              <OwnerDashboard />
+              <DashboardLayout>
+                <DashboardOverview />
+              </DashboardLayout>
             </ProtectedRoute>
           } 
         />
-        
-        {/* Catch-all for broken links */}
-        <Route path="*" element={<h2 style={{ textAlign: 'center', marginTop: '50px' }}>404 - Page Not Found</h2>} />
+
+        <Route 
+          path="/dashboard/menu" 
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <MenuBuilder />
+              </DashboardLayout>
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* --- CATCH-ALL --- */}
+        <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
     </Router>
   );
