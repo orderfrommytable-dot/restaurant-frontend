@@ -37,13 +37,38 @@ const Login = ({ setToken }) => {
       return setError("Passwords do not match");
     }
 
+    // --- THE FIX: Clean Payload Construction ---
+    // We only send the exact data the database expects for each action.
+    let payload = {};
+    if (type === 'register') {
+      payload = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        companyName: formData.companyName,
+        mobileNo: formData.mobileNo,
+        email: formData.email,
+        password: formData.password
+      };
+    } else if (type === 'login') {
+      payload = {
+        email: formData.email,
+        password: formData.password
+      };
+    } else if (type === 'verify') {
+      payload = {
+        email: formData.email,
+        otp: formData.otp
+      };
+    }
+
     try {
       const res = await fetch(`https://restaurant-saas-j7ed.onrender.com${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload) // <-- Sending the clean payload here
       });
       const data = await res.json();
+      
       if (data.success) {
         if (type === 'register') setView('verify');
         else if (type === 'verify' || type === 'login') {
@@ -51,9 +76,11 @@ const Login = ({ setToken }) => {
           setToken(data.token);
         }
       } else {
+        console.error("Backend Error Details:", data); // Prints exact error to console
         setError(data.message || "Action failed");
       }
     } catch (err) {
+      console.error("Network Fetch Error:", err);
       setError("Server error. Please try again.");
     } finally {
       setLoading(false);
