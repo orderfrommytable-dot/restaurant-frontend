@@ -1,40 +1,53 @@
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+
+// --- Import your components ---
 import Login from './components/Login';
-import Dashboard from './components/Dashboard';
-import './App.css';
+import ProtectedRoute from './components/ProtectedRoute';
 
-function App() {
-  // Check for existing session
-  const [token, setToken] = useState(localStorage.getItem('token') || '');
+// --- Temporary Placeholders for the 3 Journeys ---
+const OwnerDashboard = () => <div style={{ padding: '50px' }}><h2>👑 Owner Dashboard</h2><button onClick={() => {localStorage.removeItem('token'); window.location.href='/login'}}>Logout</button></div>;
+const KitchenDisplay = () => <div style={{ padding: '50px', background: '#222', color: 'white', minHeight: '100vh' }}><h2>👨‍🍳 Kitchen Live Orders</h2></div>;
+const CustomerMenu = () => <div style={{ padding: '20px' }}><h2>🍔 Digital Menu (No Login Required)</h2><p>Ordering for Table 4</p></div>;
 
-  // Handle Logout
-  const handleLogout = () => {
-    setToken('');
-    localStorage.removeItem('token');
-    window.location.href = '/'; // Reset the URL to clear any menu/table params
-  };
-
-  // Check if we are a customer looking at a menu
-  const queryParams = new URLSearchParams(window.location.search);
-  const customerSlug = queryParams.get('menu');
-
-  // If a customer is scanning, we don't show login, we show the menu
-  if (customerSlug) {
-    return <Dashboard customerSlug={customerSlug} isCustomer={true} />;
-  }
+const App = () => {
+  const [token, setToken] = useState(localStorage.getItem('token'));
 
   return (
-    <div className="app-shell">
-      {!token ? (
-        <Login setToken={(t) => {
-          setToken(t);
-          localStorage.setItem('token', t);
-        }} />
-      ) : (
-        <Dashboard token={token} handleLogout={handleLogout} isCustomer={false} />
-      )}
-    </div>
+    <Router>
+      <Routes>
+        {/* --- 1. THE OPEN ROUTES (Guests & Public) --- */}
+        {/* If someone just goes to yourwebsite.com, send them to login */}
+        <Route path="/" element={<Navigate to="/login" />} />
+        
+        <Route 
+          path="/login" 
+          element={token ? <Navigate to="/dashboard" /> : <Login setToken={setToken} />} 
+        />
+
+        {/* The QR Code Link: e.g., yoursite.com/menu/burger-joint/table-4 */}
+        <Route path="/menu/:restaurantSlug/:tableNumber" element={<CustomerMenu />} />
+
+
+        {/* --- 2. THE KITCHEN ROUTE (Low Friction Auth) --- */}
+        <Route path="/kitchen" element={<KitchenDisplay />} />
+
+
+        {/* --- 3. THE OWNER PORTAL (Strict Auth) --- */}
+        <Route 
+          path="/dashboard/*" 
+          element={
+            <ProtectedRoute>
+              <OwnerDashboard />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Catch-all for broken links */}
+        <Route path="*" element={<h2 style={{ textAlign: 'center', marginTop: '50px' }}>404 - Page Not Found</h2>} />
+      </Routes>
+    </Router>
   );
-}
+};
 
 export default App;
