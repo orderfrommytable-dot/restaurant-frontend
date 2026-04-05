@@ -1,17 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
+import { Link } from 'react-router-dom';
 
 const DashboardOverview = () => {
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Replace this with your ACTUAL Vercel frontend URL
-  const FRONTEND_URL = "https://restaurant-frontend-two-gold.vercel.app";
+  // Fallback to localhost if env var is missing
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  // The frontend public URL where the QR code will direct users
+  const FRONTEND_URL = window.location.origin;
 
   useEffect(() => {
     const fetchMyRestaurants = async () => {
       try {
-        const response = await fetch('https://restaurant-saas-j7ed.onrender.com/restaurants', {
+        const response = await fetch(`${API_URL}/restaurants`, {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         });
         const data = await response.json();
@@ -41,8 +44,7 @@ const DashboardOverview = () => {
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
           {restaurants.map(r => {
-            // This is the Magic QR Link for customers
-            const qrUrl = `${FRONTEND_URL}/menu/${r.slug}/table-1`;
+            const qrUrl = `${FRONTEND_URL}/menu/${r.slug}/1`; // table 1 default for demo
             
             return (
               <div key={r.id} style={cardStyle}>
@@ -50,11 +52,15 @@ const DashboardOverview = () => {
                 <div style={{ background: 'white', padding: '15px', borderRadius: '10px', display: 'inline-block' }}>
                   <QRCodeSVG value={qrUrl} size={150} />
                 </div>
-                <p style={{ fontSize: '14px', color: '#666', marginTop: '15px' }}>
+                <p style={{ fontSize: '14px', color: '#666', margin: '15px 0' }}>
                   Slug: <strong>{r.slug}</strong>
                 </p>
-                <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-                   <a href={qrUrl} target="_blank" rel="noreferrer" style={linkButtonStyle}>Preview Menu</a>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                   <div style={{ display: 'flex', gap: '10px' }}>
+                     <Link to={`/dashboard/menu/${r.id}`} style={linkButtonStyle}>Manage Menu</Link>
+                     <Link to={`/dashboard/kitchen/${r.id}`} style={linkButtonStyle}>Live Kitchen</Link>
+                   </div>
+                   <a href={qrUrl} target="_blank" rel="noreferrer" style={{...linkButtonStyle, background: '#cc5a27', color: 'white'}}>Preview Customer View (QR Link)</a>
                 </div>
               </div>
             );

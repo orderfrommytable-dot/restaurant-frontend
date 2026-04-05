@@ -7,21 +7,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import DashboardLayout from './components/DashboardLayout';
 import DashboardOverview from './components/DashboardOverview'; // Your real SaaS Hub
 import MenuBuilder from './components/MenuBuilder';
-
-// --- 2. Page Placeholders (Keep these simple for now) ---
-const KitchenDisplay = () => (
-  <div style={{ padding: '50px', background: '#222', color: 'white', minHeight: '100vh' }}>
-    <h2>👨‍🍳 Kitchen Live Orders</h2>
-    <p>Orders will appear here in real-time once we connect Socket.io.</p>
-  </div>
-);
-
-const CustomerMenu = () => (
-  <div style={{ padding: '20px' }}>
-    <h2>🍔 Digital Menu</h2>
-    <p>This is what the customer sees after scanning the QR code.</p>
-  </div>
-);
+import KitchenDisplay from './components/KitchenDisplay'; // New real kitchen!
+import CustomerMenu from './components/CustomerMenu';     // New customer menu!
 
 // --- 3. Main App Component ---
 const App = () => {
@@ -38,9 +25,8 @@ const App = () => {
           element={token ? <Navigate to="/dashboard" /> : <Login setToken={setToken} />} 
         />
 
-        {/* --- CUSTOMER & KITCHEN (Independent Views) --- */}
+        {/* --- CUSTOMER PUBLIC --- */}
         <Route path="/menu/:restaurantSlug/:tableNumber" element={<CustomerMenu />} />
-        <Route path="/kitchen" element={<KitchenDisplay />} />
 
         {/* --- PROTECTED OWNER PORTAL (The SaaS Hub) --- */}
         {/* Everything inside here uses the Sidebar Layout */}
@@ -56,12 +42,22 @@ const App = () => {
         />
 
         <Route 
-          path="/dashboard/menu" 
+          path="/dashboard/menu/:restaurantId" 
           element={
             <ProtectedRoute>
               <DashboardLayout>
                 <MenuBuilder />
               </DashboardLayout>
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Note: Kitchen doesn't need the Sidebar Layout, it's a fullscreen view */}
+        <Route 
+          path="/dashboard/kitchen/:restaurantId" 
+          element={
+            <ProtectedRoute>
+              <KitchenDisplay />
             </ProtectedRoute>
           } 
         />

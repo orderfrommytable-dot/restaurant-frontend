@@ -1,16 +1,77 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 
 const MenuBuilder = () => {
+  const { restaurantId } = useParams();
   const [menuItems, setMenuItems] = useState([]);
   const [formData, setFormData] = useState({ name: '', price: '', description: '' });
+  const [loading, setLoading] = useState(true);
 
-  const handleAdd = (e) => {
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+  useEffect(() => {
+    const fetchMenu = async () => {
+      try {
+        const response = await fetch(`${API_URL}/restaurants/${restaurantId}/menu`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        const data = await response.json();
+        if (data.success) {
+          setMenuItems(data.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch menu:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (restaurantId) fetchMenu();
+  }, [restaurantId, API_URL]);
+
+  const handleAdd = async (e) => {
     e.preventDefault();
-    // For now, we just add it to the local list. 
-    // Next, we will connect this to your Neon Database!
-    setMenuItems([...menuItems, { ...formData, id: Date.now() }]);
-    setFormData({ name: '', price: '', description: '' });
+    try {
+      const response = await fetch(`${API_URL}/restaurants/${restaurantId}/menu`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}` 
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          price: parseFloat(formData.price),
+          description: formData.description
+        })
+      });
+      const data = await response.json();
+      if (data.success) {
+        setMenuItems([...menuItems, data.data]);
+        setFormData({ name: '', price: '', description: '' });
+      } else {
+        alert("Error adding item: " + data.message);
+      }
+    } catch (err) {
+      console.error(err);
+    }
   };
+
+  const handleDelete = async (itemId) => {
+    if (!window.confirm("Are you sure you want to delete this dish?")) return;
+    try {
+      const response = await fetch(`${API_URL}/menu/${itemId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      const data = await response.json();
+      if (data.success) {
+        setMenuItems(menuItems.filter(item => item.id !== itemId));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  if (loading) return <div style={{ padding: '20px' }}>Loading menu...</div>;
 
   return (
     <div style={{ maxWidth: '800px' }}>
@@ -25,7 +86,7 @@ const MenuBuilder = () => {
           style={inputStyle} required 
         />
         <input 
-          type="number" placeholder="Price ($)" 
+          type="number" step="0.01" placeholder="Price ($)" 
           value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})}
           style={inputStyle} required 
         />
@@ -40,13 +101,14 @@ const MenuBuilder = () => {
       {/* --- MENU PREVIEW --- */}
       <div style={{ marginTop: '40px' }}>
         <h3>Your Live Menu</h3>
+        {menuItems.length === 0 && <p>No items yet. Add one above!</p>}
         {menuItems.map(item => (
           <div key={item.id} style={cardStyle}>
             <div>
               <strong>{item.name}</strong> - ${item.price}
               <p style={{ margin: '5px 0 0', fontSize: '14px', color: '#777' }}>{item.description}</p>
             </div>
-            <button style={{ color: 'red', border: 'none', background: 'none', cursor: 'pointer' }}>Delete</button>
+            <button onClick={() => handleDelete(item.id)} style={{ color: 'red', border: 'none', background: 'none', cursor: 'pointer', padding: '10px' }}>Delete</button>
           </div>
         ))}
       </div>
