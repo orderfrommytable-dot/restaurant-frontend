@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './Login.css';
 
 const Login = ({ setToken }) => {
   const [view, setView] = useState('login'); 
@@ -101,8 +102,8 @@ const Login = ({ setToken }) => {
           <form onSubmit={(e) => handleAction(e, 'login')}>
             <input name="email" type="email" placeholder="Email" onChange={handleChange} required style={fieldStyle} />
             <input name="password" type="password" placeholder="Password" onChange={handleChange} required style={fieldStyle} />
-            <button type="submit" disabled={loading} style={{ width: '100%', padding: '12px', background: theme.orange, color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>
-              {loading ? '...' : 'Log In'}
+            <button type="submit" disabled={loading} className="action-btn">
+              {loading ? <><div className="spinner"></div> Processing...</> : 'Log In'}
             </button>
             <p style={{ textAlign: 'center', fontSize: '14px' }}>New? <span onClick={() => setView('register')} style={{ color: theme.orange, cursor: 'pointer' }}>Sign Up</span></p>
           </form>
@@ -119,7 +120,9 @@ const Login = ({ setToken }) => {
             <input name="email" type="email" placeholder="Email" onChange={handleChange} required style={fieldStyle} />
             <input name="password" type="password" placeholder="Password" onChange={handleChange} required style={fieldStyle} />
             <input name="confirmPassword" type="password" placeholder="Confirm" onChange={handleChange} required style={fieldStyle} />
-            <button type="submit" style={{ width: '100%', padding: '12px', background: theme.orange, color: 'white', border: 'none', borderRadius: '8px' }}>Register</button>
+            <button type="submit" disabled={loading} className="action-btn">
+              {loading ? <><div className="spinner"></div> Registering...</> : 'Register'}
+            </button>
             <p onClick={() => setView('login')} style={{ textAlign: 'center', cursor: 'pointer', fontSize: '12px' }}>Back</p>
           </form>
         )}
@@ -127,7 +130,9 @@ const Login = ({ setToken }) => {
         {view === 'verify' && (
           <form onSubmit={(e) => handleAction(e, 'verify')} style={{ textAlign: 'center' }}>
             <input name="otp" maxLength="4" placeholder="0000" onChange={handleChange} required style={{ fontSize: '24px', textAlign: 'center', width: '100px', marginBottom: '20px' }} />
-            <button type="submit" style={{ width: '100%', padding: '12px', background: theme.orange, color: 'white', border: 'none', borderRadius: '8px' }}>Verify</button>
+            <button type="submit" disabled={loading} className="action-btn">
+              {loading ? <><div className="spinner"></div> Verifying...</> : 'Verify'}
+            </button>
           </form>
         )}
 

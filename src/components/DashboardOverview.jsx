@@ -11,35 +11,65 @@ const DashboardOverview = () => {
   // The frontend public URL where the QR code will direct users
   const FRONTEND_URL = window.location.origin;
 
-  useEffect(() => {
-    const fetchMyRestaurants = async () => {
-      try {
-        const response = await fetch(`${API_URL}/restaurants`, {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-        });
-        const data = await response.json();
-        if (data.success) {
-          setRestaurants(data.data);
-        }
-      } catch (err) {
-        console.error("Error fetching restaurants:", err);
-      } finally {
-        setLoading(false);
+  const fetchMyRestaurants = async () => {
+    try {
+      const response = await fetch(`${API_URL}/restaurants`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      const data = await response.json();
+      if (data.success) {
+        setRestaurants(data.data);
       }
-    };
+    } catch (err) {
+      console.error("Error fetching restaurants:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchMyRestaurants();
   }, []);
+
+  const handleCreateRestaurant = async () => {
+    const name = window.prompt("Enter the name of your new restaurant:");
+    if (!name) return;
+
+    try {
+      const response = await fetch(`${API_URL}/restaurants`, {
+        method: "POST",
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}` 
+        },
+        body: JSON.stringify({ name })
+      });
+      const data = await response.json();
+      if (data.success) {
+        fetchMyRestaurants();
+      } else {
+        alert("Failed to create restaurant: " + data.message);
+      }
+    } catch (err) {
+      console.error("Create error", err);
+    }
+  };
 
   if (loading) return <div style={{ padding: '20px' }}>Loading your dashboard...</div>;
 
   return (
     <div>
-      <h2 style={{ color: '#2c1e16', marginBottom: '20px' }}>Your Restaurants</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <h2 style={{ color: '#2c1e16', margin: 0 }}>Your Restaurants</h2>
+        {restaurants.length > 0 && (
+          <button onClick={handleCreateRestaurant} style={buttonStyle}>+ Create Another Restaurant</button>
+        )}
+      </div>
       
       {restaurants.length === 0 ? (
         <div style={cardStyle}>
           <p>You haven't created a restaurant yet!</p>
-          <button style={buttonStyle}>+ Create First Restaurant</button>
+          <button onClick={handleCreateRestaurant} style={buttonStyle}>+ Create First Restaurant</button>
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
@@ -73,7 +103,7 @@ const DashboardOverview = () => {
 
 // Styles
 const cardStyle = { background: 'white', padding: '25px', borderRadius: '15px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', textAlign: 'center' };
-const buttonStyle = { padding: '10px 20px', background: '#cc5a27', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' };
+const buttonStyle = { padding: '10px 20px', background: '#cc5a27', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' };
 const linkButtonStyle = { flex: 1, textDecoration: 'none', padding: '8px', background: '#f5f0eb', color: '#2c1e16', borderRadius: '5px', fontSize: '13px', fontWeight: 'bold' };
 
 export default DashboardOverview;

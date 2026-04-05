@@ -20,10 +20,7 @@ const DashboardLayout = ({ children }) => {
         <nav style={{ flex: 1, padding: '20px' }}>
           <ul style={{ listStyle: 'none', padding: 0 }}>
             <li style={{ marginBottom: '15px' }}>
-              <Link to="/dashboard" style={{ color: 'white', textDecoration: 'none' }}>📊 Overview</Link>
-            </li>
-            <li style={{ marginBottom: '15px' }}>
-              <Link to="/dashboard/menu" style={{ color: 'white', textDecoration: 'none' }}>🍔 Menu Builder</Link>
+              <Link to="/dashboard" style={{ color: 'white', textDecoration: 'none' }}>📊 Overview (Select Restaurant)</Link>
             </li>
           </ul>
         </nav>
