@@ -11,7 +11,7 @@ const CustomerMenu = () => {
   const [placedOrder, setPlacedOrder] = useState(null);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
 
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const API_URL = import.meta.env.VITE_API_URL || "https://restaurant-saas-j7ed.onrender.com";
 
   useEffect(() => {
     const fetchMenu = async () => {

@@ -6,8 +6,8 @@ const DashboardOverview = () => {
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fallback to localhost if env var is missing
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  // Fallback to production if env var is missing
+  const API_URL = import.meta.env.VITE_API_URL || "https://restaurant-saas-j7ed.onrender.com";
   // The frontend public URL where the QR code will direct users
   const FRONTEND_URL = window.location.origin;
 

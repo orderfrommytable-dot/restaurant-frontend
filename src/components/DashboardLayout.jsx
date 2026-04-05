@@ -6,7 +6,7 @@ const DashboardLayout = ({ children }) => {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    navigate('/login');
+    window.location.href = '/login';
   };
 
   return (
