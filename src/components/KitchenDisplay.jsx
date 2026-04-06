@@ -5,7 +5,7 @@ import { io } from 'socket.io-client';
 const KitchenDisplay = () => {
   const { restaurantId } = useParams();
   const [orders, setOrders] = useState([]);
-  const API_URL = import.meta.env.VITE_API_URL || "https://restaurant-saas-j7ed.onrender.com";
+  const API_URL = import.meta.env.PROD ? "https://restaurant-saas-j7ed.onrender.com" : "http://localhost:5000";
 
   const fetchOrders = async () => {
     try {
