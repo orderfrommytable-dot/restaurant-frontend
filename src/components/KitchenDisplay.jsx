@@ -38,8 +38,14 @@ const KitchenDisplay = () => {
     
     socket.on("newOrder", (data) => {
       if (data.restaurantId === parseInt(restaurantId)) {
-        // Play alert sound or just fetch
         console.log("📢 New order received!");
+        
+        try {
+          // Play a simple notification beep
+          const audio = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
+          audio.play().catch(e => console.log("Browser blocked autoplay sound", e));
+        } catch (err) {}
+        
         fetchOrders();
       }
     });

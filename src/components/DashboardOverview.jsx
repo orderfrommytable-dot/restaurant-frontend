@@ -31,15 +31,33 @@ const DashboardOverview = () => {
   }, []);
 
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [openDropdown, setOpenDropdown] = useState(null);
   const [formData, setFormData] = useState({ name: '', location: '', openingTime: '', closingTime: '', numberOfTables: 1 });
+
+  const startEditing = (r) => {
+    setFormData({
+      name: r.name,
+      location: r.location || '',
+      openingTime: r.openingTime || '',
+      closingTime: r.closingTime || '',
+      numberOfTables: r.numberOfTables || 1
+    });
+    setEditingId(r.id);
+    setShowForm(true);
+    setOpenDropdown(null);
+  };
 
   const handleCreateRestaurant = async (e) => {
     e.preventDefault();
     if (!formData.name) return;
 
     try {
-      const response = await fetch(`${API_URL}/restaurants`, {
-        method: "POST",
+      const url = editingId ? `${API_URL}/restaurants/${editingId}` : `${API_URL}/restaurants`;
+      const method = editingId ? "PUT" : "POST";
+
+      const response = await fetch(url, {
+        method: method,
         headers: { 
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}` 
@@ -49,13 +67,14 @@ const DashboardOverview = () => {
       const data = await response.json();
       if (data.success) {
         setShowForm(false);
+        setEditingId(null);
         setFormData({ name: '', location: '', openingTime: '', closingTime: '', numberOfTables: 1 });
         fetchMyRestaurants();
       } else {
-        alert("Failed to create restaurant: " + data.message);
+        alert("Failed to save restaurant: " + data.message);
       }
     } catch (err) {
-      console.error("Create error", err);
+      console.error("Save error", err);
     }
   };
 
@@ -66,13 +85,13 @@ const DashboardOverview = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <h2 style={{ color: '#2c1e16', margin: 0 }}>Your Restaurants</h2>
         {restaurants.length > 0 && !showForm && (
-          <button onClick={() => setShowForm(true)} style={buttonStyle}>+ Create Another Restaurant</button>
+          <button onClick={() => { setEditingId(null); setFormData({ name: '', location: '', openingTime: '', closingTime: '', numberOfTables: 1 }); setShowForm(true); }} style={buttonStyle}>+ Create Another Restaurant</button>
         )}
       </div>
 
       {showForm && (
         <div style={{ ...cardStyle, marginBottom: '20px', textAlign: 'left', border: '2px solid #cc5a27' }}>
-          <h3 style={{ marginTop: 0, color: '#cc5a27' }}>New Restaurant Setup</h3>
+          <h3 style={{ marginTop: 0, color: '#cc5a27' }}>{editingId ? "Edit Restaurant" : "New Restaurant Setup"}</h3>
           <form onSubmit={handleCreateRestaurant} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
             <input placeholder="Restaurant Name (Required)" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} style={inputStyle} />
             <input placeholder="Location e.g. New York, NY" value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} style={inputStyle} />
@@ -83,8 +102,8 @@ const DashboardOverview = () => {
             <label style={{ fontSize: '14px', fontWeight: 'bold' }}>Number of Tables (for QR generation)</label>
             <input type="number" min="1" max="100" required value={formData.numberOfTables} onChange={e => setFormData({...formData, numberOfTables: e.target.value})} style={inputStyle} />
             <div style={{ display: 'flex', gap: '10px' }}>
-              <button type="submit" style={buttonStyle}>Launch Restaurant</button>
-              <button type="button" onClick={() => setShowForm(false)} style={{ ...buttonStyle, background: '#e6ded8', color: '#2c1e16' }}>Cancel</button>
+              <button type="submit" style={buttonStyle}>{editingId ? "Save Changes" : "Launch Restaurant"}</button>
+              <button type="button" onClick={() => { setShowForm(false); setEditingId(null); }} style={{ ...buttonStyle, background: '#e6ded8', color: '#2c1e16' }}>Cancel</button>
             </div>
           </form>
         </div>
@@ -93,7 +112,7 @@ const DashboardOverview = () => {
       {restaurants.length === 0 && !showForm ? (
         <div style={cardStyle}>
           <p>You haven't created a restaurant yet!</p>
-          <button onClick={() => setShowForm(true)} style={buttonStyle}>+ Create First Restaurant</button>
+          <button onClick={() => { setEditingId(null); setShowForm(true); }} style={buttonStyle}>+ Create First Restaurant</button>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
@@ -109,9 +128,17 @@ const DashboardOverview = () => {
                     {r.location && <p style={{ margin: '0 0 5px 0', fontSize: '14px', color: '#666' }}>📍 {r.location}</p>}
                     <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>Tables: <strong>{numTables}</strong></p>
                   </div>
-                  <div style={{ display: 'flex', gap: '10px' }}>
-                    <Link to={`/dashboard/menu/${r.id}`} style={linkButtonStyle}>🍔 Manage Menu</Link>
-                    <Link to={`/dashboard/kitchen/${r.id}`} style={{ ...linkButtonStyle, background: '#1ed760', color: 'black' }}>👨‍🍳 Live Kitchen</Link>
+                  <div style={{ position: 'relative' }}>
+                    <button onClick={() => setOpenDropdown(openDropdown === r.id ? null : r.id)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', padding: '0 10px', color: '#666' }}>
+                      ⋮
+                    </button>
+                    {openDropdown === r.id && (
+                      <div style={{ position: 'absolute', right: 0, top: '40px', background: 'white', border: '1px solid #e6ded8', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', overflow: 'hidden', zIndex: 10, width: '160px' }}>
+                        <Link to={`/dashboard/menu/${r.id}`} style={{ display: 'block', padding: '12px 15px', color: '#2c1e16', textDecoration: 'none', borderBottom: '1px solid #f5f0eb', fontSize: '13px', fontWeight: 'bold' }}>🍔 Manage Menu</Link>
+                        <Link to={`/dashboard/kitchen/${r.id}`} style={{ display: 'block', padding: '12px 15px', color: '#2c1e16', textDecoration: 'none', borderBottom: '1px solid #f5f0eb', fontSize: '13px', fontWeight: 'bold' }}>👨‍🍳 Live Kitchen</Link>
+                        <button onClick={() => startEditing(r)} style={{ display: 'block', width: '100%', padding: '12px 15px', color: '#2c1e16', border: 'none', background: 'white', textAlign: 'left', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' }}>✏️ Edit Details</button>
+                      </div>
+                    )}
                   </div>
                 </div>
 
