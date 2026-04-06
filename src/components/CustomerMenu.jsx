@@ -7,9 +7,9 @@ const CustomerMenu = () => {
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // Order state tracking
-  const [placedOrder, setPlacedOrder] = useState(null);
-  const [paymentSuccess, setPaymentSuccess] = useState(false);
+  // Session tracking
+  const [activeOrders, setActiveOrders] = useState([]);
+  const [view, setView] = useState('MENU'); // MENU | ACTIVE_ORDERS | PAYMENT_SUCCESS
 
   const API_URL = import.meta.env.PROD ? "https://restaurant-saas-j7ed.onrender.com" : "http://localhost:5000";
 
@@ -43,7 +43,12 @@ const CustomerMenu = () => {
     setCart(cart.filter(c => c.id !== itemId));
   };
 
-  const totalAmount = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  
+  // Calculate grand total across all unpaid active orders
+  const grandTotal = activeOrders
+    .filter(o => o.paymentStatus !== 'PAID')
+    .reduce((sum, order) => sum + (order.totalAmount || 0), 0);
 
   const handleCheckout = async () => {
     if (cart.length === 0) return;
@@ -55,13 +60,14 @@ const CustomerMenu = () => {
           restaurantId: restaurant.id,
           tableNumber: tableNumber,
           items: cart,
-          totalAmount: totalAmount
+          totalAmount: cartTotal
         })
       });
       const data = await response.json();
       if (data.success) {
-        setPlacedOrder(data.data);
+        setActiveOrders([...activeOrders, data.data]);
         setCart([]);
+        setView('ACTIVE_ORDERS');
       } else {
         alert("Could not place order");
       }
@@ -73,55 +79,82 @@ const CustomerMenu = () => {
 
   const handlePayment = async () => {
     try {
-      const response = await fetch(`${API_URL}/orders/${placedOrder.id}/pay`, {
-        method: 'PUT'
-      });
-      const data = await response.json();
-      if (data.success) {
-        setPaymentSuccess(true);
-      }
+      const unpaidOrders = activeOrders.filter(o => o.paymentStatus !== 'PAID');
+      
+      // Request pay for all unpaid orders
+      await Promise.all(
+        unpaidOrders.map(order => 
+          fetch(`${API_URL}/orders/${order.id}/pay`, { method: 'PUT' })
+        )
+      );
+      
+      setView('PAYMENT_SUCCESS');
     } catch (err) {
       console.error(err);
+      alert("Payment processing error");
     }
   };
 
   if (loading) return <div style={containerStyle}>Loading Digital Menu...</div>;
   if (!restaurant) return <div style={containerStyle}>Restaurant not found</div>;
 
-  // Render Post-Order Screen
-  if (placedOrder) {
+  if (view === 'PAYMENT_SUCCESS') {
+    return (
+      <div style={containerStyle}>
+         <div style={{ padding: '30px', background: 'white', color: '#2e7d32', borderRadius: '15px', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}>
+            <h2 style={{ margin: '0 0 10px 0' }}>✅ Payment Successful!</h2>
+            <p style={{ margin: 0 }}>Thank you for dining with {restaurant.name}.</p>
+         </div>
+      </div>
+    );
+  }
+
+  if (view === 'ACTIVE_ORDERS') {
     return (
       <div style={containerStyle}>
         <div style={cardStyle}>
-          <h2 style={{ color: '#2c1e16', marginBottom: '10px' }}>Your Order is in the Kitchen! 👨‍🍳</h2>
+          <h2 style={{ color: '#2c1e16', marginBottom: '5px' }}>Your Table Session</h2>
           <p style={{ color: '#666', marginBottom: '20px' }}>Table {tableNumber}</p>
           
-          <div style={{ background: '#f9f9f9', padding: '15px', borderRadius: '10px', textAlign: 'left', marginBottom: '20px' }}>
-            <h4 style={{ margin: '0 0 10px 0' }}>Order Summary:</h4>
-            {placedOrder.items.map((item, idx) => (
-              <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0' }}>
-                <span>{item.quantity}x {item.name}</span>
-                <span>${(item.price * item.quantity).toFixed(2)}</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginBottom: '25px' }}>
+            {activeOrders.map((order, idx) => (
+              <div key={order.id} style={{ background: '#f9f9f9', padding: '15px', borderRadius: '10px', textAlign: 'left', border: '1px solid #eee' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', borderBottom: '1px solid #ddd', paddingBottom: '10px' }}>
+                  <span style={{ fontWeight: 'bold' }}>Round {idx + 1}</span>
+                  <span style={{ 
+                    padding: '3px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold',
+                    background: order.status === 'COMPLETED' ? '#e8f5e9' : '#fff3e0',
+                    color: order.status === 'COMPLETED' ? '#2e7d32' : '#e65100'
+                  }}>
+                    {order.status}
+                  </span>
+                </div>
+                
+                {order.items.map((item, i) => (
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0', fontSize: '14px' }}>
+                    <span>{item.quantity}x {item.name}</span>
+                    <span>${(item.price * item.quantity).toFixed(2)}</span>
+                  </div>
+                ))}
               </div>
             ))}
-            <div style={{ borderTop: '1px solid #ddd', marginTop: '10px', paddingTop: '10px', fontWeight: 'bold', display: 'flex', justifyContent: 'space-between' }}>
-              <span>Total:</span>
-              <span>${placedOrder.totalAmount?.toFixed(2)}</span>
-            </div>
           </div>
 
-          {!paymentSuccess ? (
-            <div>
-              <p style={{ fontSize: '14px', color: '#666' }}>Finished eating? Ready to go?</p>
-              <button onClick={handlePayment} style={{...buttonStyle, width: '100%', padding: '15px', fontSize: '18px', background: '#70e000', color: 'black'}}>
-                Pay Bill Online
+          <div style={{ background: '#1f150f', color: 'white', padding: '20px', borderRadius: '12px', textAlign: 'left' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', fontSize: '18px', fontWeight: 'bold' }}>
+              <span>Total Bill:</span>
+              <span style={{ color: '#ffb703' }}>${grandTotal.toFixed(2)}</span>
+            </div>
+            
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button onClick={() => setView('MENU')} style={{ flex: 1, padding: '12px', background: '#e6ded8', color: '#1f150f', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
+                + Order More
+              </button>
+              <button onClick={handlePayment} style={{ flex: 1, padding: '12px', background: '#70e000', color: 'black', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
+                💳 Pay Bill
               </button>
             </div>
-          ) : (
-            <div style={{ padding: '20px', background: '#e8f5e9', color: '#2e7d32', borderRadius: '10px', fontWeight: 'bold' }}>
-              ✅ Payment Successful! Thank you for dining with {restaurant.name}.
-            </div>
-          )}
+          </div>
         </div>
       </div>
     );
@@ -130,8 +163,17 @@ const CustomerMenu = () => {
   // Render Menu
   return (
     <div style={containerStyle}>
-      <h1 style={{ color: '#cc5a27', marginBottom: '5px' }}>{restaurant.name}</h1>
-      <p style={{ color: '#666', marginBottom: '20px' }}>Table: <strong>{tableNumber}</strong></p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <div style={{ textAlign: 'left' }}>
+          <h1 style={{ color: '#cc5a27', margin: '0 0 5px 0' }}>{restaurant.name}</h1>
+          <p style={{ color: '#666', margin: 0 }}>Table: <strong>{tableNumber}</strong></p>
+        </div>
+        {activeOrders.length > 0 && (
+          <button onClick={() => setView('ACTIVE_ORDERS')} style={{ background: '#1f150f', color: 'white', border: 'none', padding: '8px 15px', borderRadius: '20px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>
+            View Active Orders ({activeOrders.length})
+          </button>
+        )}
+      </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
         {restaurant.menuItems.length === 0 ? (
@@ -157,11 +199,11 @@ const CustomerMenu = () => {
       {cart.length > 0 && (
         <div style={{ position: 'sticky', bottom: '20px', background: '#2c1e16', padding: '20px', borderRadius: '15px', color: 'white', marginTop: '30px', boxShadow: '0 10px 20px rgba(0,0,0,0.2)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', alignItems: 'center' }}>
-            <h3 style={{ margin: 0 }}>Your Order</h3>
-            <span style={{ fontSize: '20px', fontWeight: 'bold', color: '#ffb703' }}>${totalAmount.toFixed(2)}</span>
+            <h3 style={{ margin: 0 }}>Your Cart</h3>
+            <span style={{ fontSize: '20px', fontWeight: 'bold', color: '#ffb703' }}>${cartTotal.toFixed(2)}</span>
           </div>
           
-          <ul style={{ padding: 0, margin: '0 0 20px 0', listStyle: 'none' }}>
+          <ul style={{ padding: 0, margin: '0 0 20px 0', listStyle: 'none', maxHeight: '150px', overflowY: 'auto' }}>
             {cart.map(item => (
               <li key={item.id} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '14px' }}>
                 <span>{item.quantity}x {item.name}</span>
@@ -174,7 +216,7 @@ const CustomerMenu = () => {
           </ul>
           
           <button onClick={handleCheckout} style={{ ...buttonStyle, width: '100%', background: '#ffb703', color: 'black' }}>
-            Place Order
+            Place Order to Kitchen
           </button>
         </div>
       )}
